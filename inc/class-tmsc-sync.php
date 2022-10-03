@@ -175,8 +175,11 @@ class TMSC_Sync {
 	/**
 	 * Our ajax handler for syncing manually from the wp-admin area submenu.
 	 */
-	public function sync_objects() {
+	public function sync_objects() {	
 		if ( current_user_can( self::$capability ) ) {
+			// Reset
+			self::$instance->reset_sync();
+
 			check_ajax_referer( 'tmsc_object_sync', 'tmsc_nonce' );
 
 			if ( ! empty( $_POST['tmsc-db-host'] ) ) {
@@ -222,9 +225,10 @@ class TMSC_Sync {
 				self::$enable_cron = '';
 			}
 
-			wp_clear_scheduled_hook( 'tmsc_actually_sync_objects' );
 			wp_schedule_single_event( time(), 'tmsc_actually_sync_objects', array() );
 			update_option( 'tmsc-sync-complete', false );
+			update_option( 'tmsc-sync-started', time() );
+			delete_option( 'tmsc-sync-ended' );
 
 			// If we pressed the button manually, process any post processing data.
 			if ( '1' === self::$enable_cron ) {
@@ -419,17 +423,36 @@ class TMSC_Sync {
 	}
 
 	/**
+	 * Handle a reset of all indexes and date, and deletes cache
+	 */
+	public function reset_sync() {
+		delete_option( 'tmsc-last-sync-date' );
+		wp_cache_delete( 'tmsc-last-sync-date', 'options' );
+
+		foreach ( tmsc_get_system_processors() as $type => $label ) {
+			delete_option( "tmsc-cursor-{$type}" );
+			wp_cache_delete( "tmsc-cursor-{$type}", 'options' );
+		}
+
+		delete_option( 'tmsc-processors-cursor' );
+		wp_cache_delete( 'tmsc-processors-cursor', 'options' );
+
+		delete_option( 'tmsc_current_sync_state' );
+		wp_cache_delete( 'tmsc_current_sync_state', 'options' );
+
+		wp_clear_scheduled_hook( 'tmsc_actually_sync_objects' );
+		wp_clear_scheduled_hook( 'tmsc_monitor_actually_sync_objects' );
+	}
+
+	/**
 	 * Handle our post processing meta fields and clean up after import.
 	 */
 	public function complete_sync() {
 		self::$instance->do_post_processing();
 
-		foreach ( tmsc_get_system_processors() as $processor_slug => $processor_class_slug ) {
-			delete_option( "tmsc-cursor-{$processor_slug}" );
-		}
-		delete_option( 'tmsc-processors-cursor' );
 		update_option( 'tmsc-sync-complete', true );
 		wp_clear_scheduled_hook( 'tmsc_monitor_actually_sync_objects' );
+		update_option( 'tmsc-sync-ended', time() );
 
 		$message = date( 'Y-m-d H:i:s' );
 
@@ -446,6 +469,7 @@ class TMSC_Sync {
 		// Set sync status and clear our message cache.
 		tmsc_set_sync_status( $message );
 		tmsc_stop_the_insanity();
+		self::$instance->reset_sync();
 	}
 
 	/**
