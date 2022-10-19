@@ -23,7 +23,7 @@ class TMSConnect_Object_Processor extends \TMSC\Database\TMSC_Processor {
 	/**
 	 * Number of objects to process at a time.
 	 */
-	public $batch_size = 40;
+	public $batch_size = 200;
 
 	/**
 	 * Constructor
