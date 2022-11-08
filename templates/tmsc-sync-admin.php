@@ -34,6 +34,7 @@
 				<input type="checkbox" id="tmsc-enable-cron" name="tmsc-enable-cron" value="1" <?php checked( '1', get_option( 'tmsc-enable-cron', '' ) ); ?>>
 			</p>
 			<p>
+				<input type="button" name="tmsc-reset-button" id="tmsc-reset-button" class="button button-secondary" value="<?php esc_attr_e( 'Hard Reset', 'tmsc' ); ?>">
 				<input type="submit" name="tmsc-sync-button" id="tmsc-sync-button" class="button button-primary" value="<?php esc_attr_e( 'Sync Objects', 'tmsc' ); ?>">
 			</p>
 			<p>

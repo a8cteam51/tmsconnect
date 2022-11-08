@@ -94,6 +94,7 @@ class TMSC_Sync {
 			// Our Admin Area Menu
 			add_action( 'admin_menu', array( self::$instance, 'add_menu_pages' ) );
 			add_action( 'wp_ajax_sync_objects', array( self::$instance, 'sync_objects' ) );
+			add_action( 'wp_ajax_reset_objects', array( self::$instance, 'reset_objects' ) );
 			add_action( 'wp_ajax_get_option_value', array( self::$instance, 'ajax_get_option_value' ) );
 		}
 
@@ -170,6 +171,38 @@ class TMSC_Sync {
 	 */
 	public function terminate_connection() {
 		self::$tms_pdo_connection = null;
+	}
+
+	/**
+	 * Our ajax handler for resetting the sync process, from the wp-admin area submenu.
+	 */
+	public function reset_objects() {
+		if ( current_user_can( self::$capability ) ) {
+			check_ajax_referer( 'tmsc_object_sync', 'tmsc_nonce' );
+
+			delete_option( 'tmsc-last-sync-date' );
+			wp_cache_delete( 'tmsc-last-sync-date', 'options' );
+
+			foreach ( tmsc_get_system_processors() as $type => $label ) {
+				delete_option( "tmsc-cursor-{$type}" );
+				wp_cache_delete( "tmsc-cursor-{$type}", 'options' );
+			}
+
+			delete_option( 'tmsc-processors-cursor' );
+			wp_cache_delete( 'tmsc-processors-cursor', 'options' );
+
+			delete_option( 'tmsc_current_sync_state' );
+			wp_cache_delete( 'tmsc_current_sync_state', 'options' );
+
+			wp_clear_scheduled_hook( 'tmsc_actually_sync_objects' );
+			wp_clear_scheduled_hook( 'tmsc_monitor_actually_sync_objects' );
+
+			echo 1;
+		} else {
+			echo 0;
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'tmsc' ) );
+		}
+		exit();
 	}
 
 	/**
