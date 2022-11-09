@@ -34,6 +34,7 @@
 				<input type="checkbox" id="tmsc-enable-cron" name="tmsc-enable-cron" value="1" <?php checked( '1', get_option( 'tmsc-enable-cron', '' ) ); ?>>
 			</p>
 			<p>
+				<input type="button" name="tmsc-reset-button" id="tmsc-reset-button" class="button button-secondary" value="<?php esc_attr_e( 'Hard Reset', 'tmsc' ); ?>">
 				<input type="submit" name="tmsc-sync-button" id="tmsc-sync-button" class="button button-primary" value="<?php esc_attr_e( 'Sync Objects', 'tmsc' ); ?>">
 			</p>
 			<p>
@@ -51,8 +52,49 @@
 						endif; ?>
 					</span>
 					<span id="ajax-loading"><img src="/wp-admin/images/loading.gif"/></span>
+					<ul>
+						<li><?php esc_html_e( 'Last Time Started: ', 'tmsc' ); ?> <?= time_elapsed_string(get_option('tmsc-sync-started') ); ?></li>
+						<li><?php esc_html_e( 'Last Time Ended: ', 'tmsc' ); ?> <?= time_elapsed_string(get_option('tmsc-sync-ended') ); ?></li>
+					</ul>
 				</div>
 			</p>
 		</form>
 	</div>
 </div>
+
+<?php
+function time_elapsed_string($timestamp, $full = false) {
+	if ( empty($timestamp) ){
+		return 'Unknown';
+	}
+
+	$timestamp = '@' . $timestamp;
+
+    $now = new DateTime;
+    $ago = new DateTime($timestamp);
+    $diff = $now->diff($ago);
+
+    $diff->w = floor($diff->d / 7);
+    $diff->d -= $diff->w * 7;
+
+    $string = array(
+        'y' => 'year',
+        'm' => 'month',
+        'w' => 'week',
+        'd' => 'day',
+        'h' => 'hour',
+        'i' => 'minute',
+        's' => 'second',
+    );
+    foreach ($string as $k => &$v) {
+        if ($diff->$k) {
+            $v = $diff->$k . ' ' . $v . ($diff->$k > 1 ? 's' : '');
+        } else {
+            unset($string[$k]);
+        }
+    }
+
+    if (!$full) $string = array_slice($string, 0, 1);
+    return $string ? implode(', ', $string) . ' ago' : 'just now';
+}
+?>

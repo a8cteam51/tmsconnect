@@ -308,4 +308,29 @@ class TMSC {
 		$sync_locked_types = apply_filters( 'tmsc_sync_lock_enabled', array( 'tms_object', 'exhibition', 'constituant' ) );
 		return in_array( $post_type, $sync_locked_types, true );
 	}
+
+	public function encrypt_decrypt( $option, $string = '' ) {
+		$output = '';
+
+		if ( ! defined( 'TMSC_ENCRYPT_KEY' ) || ! defined( 'TMSC_ENCRYPT_IV' ) ) {
+			trigger_error('Secret keys TMSC_ENCRYPT_KEY and TMSC_ENCRYPT_IV are not defined', E_USER_WARNING);
+			return;
+		}
+
+		// Pull secret keys from wp-config.php
+		$secret_key = TMSC_ENCRYPT_KEY;
+		$secret_iv = TMSC_ENCRYPT_IV;
+
+		$key = hash( 'sha256', $secret_key );
+		$init_vector = substr( hash( 'sha256', $secret_iv ), 0, 16 );
+
+		if ( $option === 'e' ) {
+			$output = base64_encode( openssl_encrypt( $string, "AES-256-CBC", $key, 0, $init_vector ) );
+		}
+		if( $option === 'd' ) {
+			$output = openssl_decrypt( base64_decode( $string ), "AES-256-CBC", $key, 0, $init_vector );
+		}
+
+		return $output;
+	}
 }
