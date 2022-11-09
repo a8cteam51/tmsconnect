@@ -2,6 +2,7 @@ jQuery(document).ready(($) => {
 
   // Admin code for the tms object sync UI
   const objectSyncButton = $('#tmsc-sync-button');
+  const objectResetButton = $('#tmsc-reset-button');
   const objectSyncForm = $('#tmsc-form');
   const loadingImg = $('#ajax-loading');
   const updatedTime = $('#tmsc-last-updated-value');
@@ -22,6 +23,26 @@ jQuery(document).ready(($) => {
     doSync();
     e.preventDefault();
   });
+
+  /**
+  * Reset sync process
+  */
+  objectResetButton.on( 'click', (e) => {
+    ajax({
+        type: 'POST',
+        dataType: 'json',
+        url: adminConfig.wp_ajax_url,
+        data: {
+            action: `reset_objects`,
+            tmsc_nonce: $('#tmsc_nonce').val()
+        },
+        dataType: 'json',
+    }).then(() => {
+        setTimeout( () => {
+            location.reload();
+        }, 1000 )
+    });
+  } );
 
   /**
    * On page load, set the UI correctly based on Sync status.
