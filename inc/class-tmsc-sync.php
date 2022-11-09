@@ -197,6 +197,12 @@ class TMSC_Sync {
 			delete_option( 'tmsc_current_sync_state' );
 			wp_cache_delete( 'tmsc_current_sync_state', 'options' );
 
+			delete_option( 'tmsc-sync-started' );
+			wp_cache_delete( 'tmsc-sync-started', 'options' );
+
+			delete_option( 'tmsc-sync-ended' );
+			wp_cache_delete( 'tmsc-sync-ended', 'options' );
+
 			wp_clear_scheduled_hook( 'tmsc_actually_sync_objects' );
 			wp_clear_scheduled_hook( 'tmsc_monitor_actually_sync_objects' );
 
