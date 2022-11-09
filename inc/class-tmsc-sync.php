@@ -63,7 +63,10 @@ class TMSC_Sync {
 		self::$tms_db_host = get_option( 'tmsc-db-host', self::$tms_db_host );
 		self::$tms_db_name = get_option( 'tmsc-db-name', self::$tms_db_name );
 		self::$tms_db_user = get_option( 'tmsc-db-user', self::$tms_db_user );
-		self::$tms_db_password = get_option( 'tmsc-db-password', self::$tms_db_password );
+
+		$password = get_option( 'tmsc-db-password', self::$tms_db_password );
+		self::$tms_db_password = \TMSC\TMSC::instance()->encrypt_decrypt( 'd', $password );
+
 		self::$image_url = get_option( 'tmsc-ids-image-url', self::$image_url );
 		self::$enable_cron = get_option( 'tmsc-enable-cron', self::$enable_cron ) ?? '';
 
@@ -228,9 +231,21 @@ class TMSC_Sync {
 				self::$tms_db_user = $user;
 			}
 			if ( ! empty( $_POST['tmsc-db-password'] ) ) {
+
+				// Check if the new password is the same as the current password encrypted,
+				// if that's the case, then skip the update_option
 				$password = sanitize_text_field( wp_unslash( $_POST['tmsc-db-password'] ) );
-				update_option( 'tmsc-db-password', $password, false );
-				self::$tms_db_password = $password;
+
+				$current_encrypted_pass = get_option( 'tmsc-db-password' );
+				if ( $current_encrypted_pass === $password ) {
+					self::$tms_db_password = $password;
+				} else {
+					// Value from form is not the encrypted password, that means
+					// it's a new pass that we should encrypt and update
+					$new_password = \TMSC\TMSC::instance()->encrypt_decrypt( 'e', $password );
+					update_option( 'tmsc-db-password', $new_password, false );
+					self::$tms_db_password = $new_password;
+				}
 			}
 			if ( ! empty( $_POST['tmsc-image-url'] ) ) {
 				$url = esc_url_raw( wp_unslash( $_POST['tmsc-image-url'] ) );
@@ -258,6 +273,9 @@ class TMSC_Sync {
 			wp_clear_scheduled_hook( 'tmsc_actually_sync_objects' );
 			wp_schedule_single_event( time(), 'tmsc_actually_sync_objects', array() );
 			update_option( 'tmsc-sync-complete', false );
+
+			update_option( 'tmsc-sync-started', time() );
+			delete_option( 'tmsc-sync-ended' );
 
 			// If we pressed the button manually, process any post processing data.
 			if ( '1' === self::$enable_cron ) {
@@ -463,6 +481,8 @@ class TMSC_Sync {
 		delete_option( 'tmsc-processors-cursor' );
 		update_option( 'tmsc-sync-complete', true );
 		wp_clear_scheduled_hook( 'tmsc_monitor_actually_sync_objects' );
+
+		update_option( 'tmsc-sync-ended', time() );
 
 		$message = date( 'Y-m-d H:i:s' );
 
