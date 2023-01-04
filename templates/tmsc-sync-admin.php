@@ -21,7 +21,7 @@
 			</p>
 			<p>
 				<label for="tmsc-image-url"><?php esc_html_e( 'Image Delivery System URL: ', 'tmsc' );?></label>
-				<input type="text" id="tmsc-image-url" name="tmsc-image-url" value="<?php echo esc_url( get_option( 'tmsc-ids-image-url', 'http://ids.si.edu/ids/deliveryService' ) ); ?>" class="regular-text code">
+				<input type="text" id="tmsc-image-url" name="tmsc-image-url" value="<?php echo esc_url( get_option( 'tmsc-ids-image-url', 'https://ids.si.edu/ids/deliveryService' ) ); ?>" class="regular-text code">
 			</p>
 			<p>
 				<label for="tmsc-migrateables"><?php esc_html_e( 'Migrate TMS Data: ', 'tmsc' );?></label>
