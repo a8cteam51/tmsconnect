@@ -33,9 +33,21 @@ function tmsc_add_post_type_meta_boxes( $type ) {
 		$mapping = apply_filters( "tmsc_{$type}_meta_keys", array() );
 		if ( ! empty( $mapping ) ) {
 			foreach ( $mapping as $key => $field ) {
-				$fm = new Fieldmanager_Textfield( array(
-					'name' => $key,
-				) );
+
+				$field_type = apply_filters( "tmsc_{$key}_field_type", 'text' );
+
+				switch ( $field_type ) {
+					case 'textarea':
+						$fm = new Fieldmanager_TextArea( array(
+							'name' => $key
+						) );
+						break;
+					default:
+						$fm = new Fieldmanager_Textfield( array(
+							'name' => $key,
+						) );
+						break;
+				}
 				$fm->add_meta_box( $field, array( $post_type ), 'normal' );
 			}
 		}
