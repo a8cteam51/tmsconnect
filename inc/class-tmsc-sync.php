@@ -86,9 +86,10 @@ class TMSC_Sync {
 				return $schedules;
 			}); 
 
-			if ( ! wp_next_scheduled ( 'tmsc_monitor_actually_sync_objects' ) && ! get_option( 'tmsc-sync-complete' ) ) {
-				wp_schedule_event( time(), 'minutely', 'tmsc_monitor_actually_sync_objects' );
-			}
+			// Turning off cronjob. https://github.com/Smithsonian/freersackler/issues/713
+			// if ( ! wp_next_scheduled ( 'tmsc_monitor_actually_sync_objects' ) && ! get_option( 'tmsc-sync-complete' ) ) {
+			// 	wp_schedule_event( time(), 'minutely', 'tmsc_monitor_actually_sync_objects' );
+			// }
 
 			add_action( 'tmsc_monitor_actually_sync_objects', array( self::$instance, 'monitor_actually_sync_objects' ) );
 		}
@@ -449,9 +450,11 @@ class TMSC_Sync {
 
 	public function cron_events_activation() {
 		// Run our sync weekly.
-		if ( ! wp_next_scheduled( 'tmsc_cron_events' ) && '1' === self::$enable_cron ) {
-			wp_schedule_event( $this->set_next_occurance_time(), 'weekly', 'tmsc_cron_events' );
-		}
+
+		// Turning off cronjob. https://github.com/Smithsonian/freersackler/issues/713
+		// if ( ! wp_next_scheduled( 'tmsc_cron_events' ) && '1' === self::$enable_cron ) {
+		// 	wp_schedule_event( $this->set_next_occurance_time(), 'weekly', 'tmsc_cron_events' );
+		// }
 	}
 
 	/**
