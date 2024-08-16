@@ -12,7 +12,12 @@
  * @param  string $meta_key The meta key.
  * @return string           The meta value.
  */
-function tmsc_get_object_meta( int $post_id, string $meta_key ) {
+function tmsc_get_object_meta( ?int $post_id, string $meta_key ) {
+
+	if ( is_null( $post_id ) ) {
+		return '';
+	}
+
 	$value = get_post_meta( $post_id, $meta_key, true );
 
 	/**
